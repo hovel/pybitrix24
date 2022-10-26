@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 
 from collections import OrderedDict
@@ -32,7 +33,8 @@ def request(url, query=None, data=None):
     request_ = Request(url, data=data,
                        headers={'Content-Type': 'application/json'})
     try:
-        response = urlopen(request_)
+        timeout=int(os.environ.get('BITRIX_API_REQUEST_TIMEOUT', '2'))
+        response = urlopen(request_, timeout=timeout)
     except HTTPError as e:
         return decode_response(e)
     except Exception as e:
