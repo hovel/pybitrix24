@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 from .exceptions import PBx24AttributeError, PBx24ArgumentError
 from .requester import encode_url, request, prepare_batch_command
 
@@ -47,6 +49,7 @@ class Bitrix24(object):
     _webhook_url_template = _method_url_template + '{user_id}/{code}/'
 
     _call_url_template = '{url}{method}.json'
+    _call_url_template_alt = '{url}{method}'
 
     def __init__(self, hostname, client_id=None, client_secret=None,
                  user_id=1, auth_hostname=None):
@@ -197,8 +200,12 @@ class Bitrix24(object):
         return data
 
     def _call(self, url, method, query, params):
-        url = self._call_url_template.format(url=url, method=method)
-        data = request(url, query, params)
+        try:
+            url = self._call_url_template.format(url=url, method=method)
+            data = request(url, query, params)
+        except JSONDecodeError:
+            url = self._call_url_template_alt.format(url=url, method=method)
+            data = request(url, query, params)
         return data
 
     def call_batch(self, calls, halt_on_error=False):
